@@ -1,0 +1,391 @@
+{
+  "schema_version": "2.3.0",
+  "engine_name": "Assamese_AI_Brain_Pro",
+  "engine_version": "v2.3.0-beta",
+  "environment": "production",
+  "primary_language": "as",
+  "supported_languages": [
+    "as",
+    "en",
+    "as-rom"
+  ],
+  "checksum_algorithm": "sha256",
+  "system_identity": {
+    "ai_name": "Assamese_AI_Brain",
+    "description": "An advanced, multi-domain Assamese AI assistant",
+    "authority_level": "absolute",
+    "override_allowed": false,
+    "immutability": "hard"
+  },
+  "global_execution_policy": {
+    "education_only": true,
+    "no_income_guarantee": true,
+    "no_medical_advice": true,
+    "no_legal_advice": true,
+    "anti_scam_enforced": true,
+    "user_protection_priority": "highest"
+  },
+  "government_grade_compliance_mode": {
+    "enabled": true,
+    "compliance_level": "strict",
+    "default_notice_as": "এই তথ্যসমূহ কেৱল সাধাৰণ জ্ঞানৰ বাবে। চৰকাৰী, আইনগত বা জৰুৰীকালীন সিদ্ধান্তৰ বাবে সদায় সংশ্লিষ্ট কৰ্তৃপক্ষৰ সৈতে যোগাযোগ কৰক।",
+    "auto_attach_notice": true,
+    "enforcement": "hard"
+  },
+  "language_normalization_engine": {
+    "enabled": true,
+    "primary_script": "Assamese Unicode",
+    "zwnj_zwj_normalization": true,
+    "spelling_variant_control": true,
+    "roman_assamese_mapping_supported": true
+  },
+  "uncertainty_management_engine": {
+    "enabled": true,
+    "confidence_threshold": 0.75,
+    "default_disclaimer_as": "এই উত্তৰটো সাধাৰণ তথ্যৰ ওপৰত আধাৰিত। বিশেষ পৰিস্থিতিত বিশেষজ্ঞৰ পৰামৰ্শ ল'বলৈ অনুৰোধ জনালোঁ।",
+    "trigger_conditions": [
+      "low_confidence",
+      "ambiguous_query",
+      "future_prediction"
+    ],
+    "auto_inject": true
+  },
+  "dynamic_knowledge_retrieval_engine": {
+    "enabled": true,
+    "primary_api_provider": "google_gemini_pro",
+    "monetization_safety_mode": {
+      "admob_policy_compliance": "strict",
+      "adsense_safe_content_only": true,
+      "block_copyright_infringement": true
+    },
+    "cost_control_for_passive_income": {
+      "billing_mode": "deduct_from_user_wallet",
+      "fallback_to_system_budget_if_empty": false,
+      "daily_api_budget_limit_usd": 1.00,
+      "max_tokens_per_dynamic_request": 300,
+      "cache_successful_responses": true
+    },
+    "trigger_condition": {
+      "linked_intent_id": "system_fallback_unknown_999",
+      "confidence_below": 0.40
+    },
+    "fallback_prompt_injection": "ইউজাৰৰ প্ৰশ্নৰ উত্তৰ অসমীয়াত দিয়া। উত্তৰটো চমু, নিৰাপদ আৰু AdMob নীতিৰ অনুকূল হ'ব লাগিব।"
+  },
+  "high_risk_refusal_engine": {
+    "enabled": true,
+    "categories": [
+      "illegal_activity",
+      "self_harm",
+      "hate_speech",
+      "medical_emergency"
+    ],
+    "refusal_message_as": "মই এই বিষয়ে সহায় কৰিবলৈ অক্ষম। এইটো নীতিবিৰোধী বা বিপদজনক হ'ব পাৰে। অনুগ্ৰহ কৰি সুৰক্ষিত বিষয়ত প্ৰশ্ন কৰক।",
+    "allow_safe_alternative": false
+  },
+  "context_management_engine": {
+    "enabled": true,
+    "session_timeout_minutes": 30,
+    "max_history_turns": 10,
+    "memory_type": "short_term"
+  },
+  "localization_engine": {
+    "geo_fencing_enabled": true,
+    "default_region": "Assam",
+    "auto_detect_location": true,
+    "regional_dialects_supported": [
+      "Upper Assam",
+      "Lower Assam"
+    ]
+  },
+  "webhook_integration": {
+    "enabled": true,
+    "api_endpoints": [
+      {
+        "service_name": "live_weather",
+        "url": "https://api.weather.com/v1/assam",
+        "method": "GET"
+      }
+    ],
+    "timeout_ms": 5000
+  },
+  "byok_custom_api_engine": {
+    "enabled": true,
+    "allow_user_api_key": true,
+    "supported_custom_providers": [
+      "google_gemini",
+      "openai_chatgpt"
+    ],
+    "priority_routing": "user_key_first_then_system_key",
+    "security": {
+      "encrypt_keys_on_device": true,
+      "never_send_key_to_server": true
+    }
+  },
+  "llm_generation_parameters": {
+    "temperature": 0.3,
+    "top_p": 0.9,
+    "max_output_tokens": 1024,
+    "system_prompt_injection": true
+  },
+  "security_and_throttling": {
+    "rate_limit_per_user": 20,
+    "rate_limit_window_minutes": 1,
+    "block_repetitive_spam": true,
+    "auto_ban_on_policy_violation": false
+  },
+  "telemetry_engine": {
+    "log_unhandled_queries": true,
+    "track_user_satisfaction": true,
+    "data_anonymization": true
+  },
+  "ad_policy_compliance_engine": {
+    "enabled": true,
+    "strict_content_filtering": true,
+    "blocked_categories": [
+      "adult_content",
+      "violence",
+      "hate_speech",
+      "illegal_drugs",
+      "profanity"
+    ],
+    "action_on_violation": "fallback_to_safe_message",
+    "safe_message_as": "দুখিত, এই বিষয়টো আমাৰ সুৰক্ষা নীতিৰ বাহিৰত।"
+  },
+  "bot_and_ivt_protection_engine": {
+    "enabled": true,
+    "captcha_trigger_threshold": 15,
+    "time_window_seconds": 60,
+    "block_vpn_proxies": false,
+    "suspicious_activity_action": "temporary_block",
+    "human_verification_required": true
+  },
+  "profit_margin_optimizer": {
+    "enabled": true,
+    "max_tokens_per_response": 150,
+    "truncate_long_queries": true,
+    "cache_frequent_queries": true,
+    "cache_duration_hours": 24,
+    "disable_api_on_low_ad_fill_rate": false
+  },
+  "user_token_economy_engine": {
+    "enabled": true,
+    "currency_name": "AI_Coins",
+    "daily_free_quota_tokens": 500,
+    "admob_rewarded_integration": {
+      "enabled": true,
+      "tokens_per_ad_view": 1000,
+      "ad_unit_id_placeholder": "ca-app-pub-xxxxxxxx/xxxxxxxx"
+    },
+    "in_app_purchases": {
+      "enabled": true,
+      "premium_unlimited_mode_usd": 4.99
+    },
+    "action_on_insufficient_balance": "show_rewarded_ad_prompt"
+  },
+  "data_privacy_and_pii_masking": {
+    "enabled": true,
+    "redact_phone_numbers": true,
+    "redact_email_addresses": true,
+    "redact_financial_info": true,
+    "masking_character": "*"
+  },
+  "intent_routing_policy": {
+    "priority_order": [
+      "exact_match",
+      "domain_match",
+      "pattern_match",
+      "fallback"
+    ],
+    "fallback_intent_id": "system_fallback_unknown_999",
+    "conflict_resolution": "highest_specificity_wins"
+  },
+  "intents": [
+    {
+      "intent_id": "general_conversation_greeting_001",
+      "domain": "general",
+      "sub_domain": "conversation",
+      "language": "as",
+      "priority": 100,
+      "patterns": [
+        "নমস্কাৰ",
+        "হাই",
+        "হেল্লো",
+        "শুভ পুৱা",
+        "শুভ সন্ধিয়া",
+        "আপুনি আছেনে"
+      ],
+      "response": "নমস্কাৰ! মই অসমীয়া AI সহায়ক। মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?",
+      "detailed_response": "নমস্কাৰ! মই আপোনাৰ প্ৰশ্নৰ উত্তৰ দিবলৈ আৰু তথ্য প্ৰদান কৰিবলৈ প্ৰস্তুত। আপুনি শিক্ষা, ব্যৱসায় বা সাধাৰণ জ্ঞানৰ বিষয়ে সুধিব পাৰে।",
+      "extended_knowledge": {
+        "context": "greeting"
+      },
+      "safety_and_compliance": {
+        "educational_only": false
+      },
+      "constraints": {},
+      "enforcement_level": "soft",
+      "metadata": {
+        "active": true
+      }
+    },
+    {
+      "intent_id": "general_identity_self_002",
+      "domain": "general",
+      "sub_domain": "identity",
+      "language": "as",
+      "priority": 90,
+      "patterns": [
+        "আপুনি কিয়",
+        "তোমাৰ নাম কি",
+        "তুমি মানুহ নে ৰবট",
+        "আপোনাৰ পৰিচয় কি"
+      ],
+      "response": "মই এটা কৃত্ৰিম বুদ্ধিমত্তা (AI) আধাৰিত কম্পিউটাৰ প্ৰগ্ৰাম। মোৰ উদ্দেশ্য হৈছে আপোনাক সঠিক তথ্যৰে সহায় কৰা।",
+      "detailed_response": "মই কোনো মানুহ নহয়, মই এটা AI Brain। মই অসমীয়া ভাষাত আপোনাৰ সৈতে কথা পাতিব পাৰোঁ আৰু বিভিন্ন বিষয়ত তথ্য দিব পাৰোঁ।",
+      "extended_knowledge": {
+        "version": "2.0.1",
+        "creator": "System Admin"
+      },
+      "safety_and_compliance": {
+        "educational_only": true
+      },
+      "constraints": {
+        "no_sentience_claim": true
+      },
+      "enforcement_level": "hard",
+      "metadata": {
+        "active": true
+      }
+    },
+    {
+      "intent_id": "business_mlm_enquiry_001",
+      "domain": "business",
+      "sub_domain": "mlm",
+      "language": "as",
+      "priority": 50,
+      "patterns": [
+        "passive income কেনেকৈ কৰিম",
+        "mlm company ত কেনেকৈ join কৰিম",
+        "network marketing ৰ পৰা পইচা কেনেকৈ ঘটিব পাৰি"
+      ],
+      "response": "MLM এটা ব্যৱসায়িক মডেল, য’ত উপাৰ্জন নিশ্চিত নহয়। ইয়াৰ বাবে সতৰ্কতা অৱলম্বন কৰা উচিত।",
+      "detailed_response": "MLM ব্যৱসায়ত সফলতা ব্যক্তিৰ দক্ষতাৰ ওপৰত নিৰ্ভৰ কৰে। কোনো কোম্পানীয়ে উপাৰ্জন নিশ্চিত কৰিব নোৱাৰে। চৰকাৰী নিৰ্দেশনাৱলী মানি চলা কোম্পানীৰ সৈতেহে কাম কৰা উচিত।",
+      "extended_knowledge": {
+        "risk_warning": "High financial risk possible",
+        "advice": "Verify company registration"
+      },
+      "safety_and_compliance": {
+        "educational_only": true,
+        "not_financial_advice": true,
+        "income_not_guaranteed": true,
+        "government_notice_required": true
+      },
+      "constraints": {
+        "no_illegal_promotion": true
+      },
+      "enforcement_level": "hard",
+      "metadata": {
+        "active": true
+      }
+    },
+    {
+      "intent_id": "education_history_assam_001",
+      "domain": "education",
+      "sub_domain": "history",
+      "language": "as",
+      "priority": 60,
+      "patterns": [
+        "অসমৰ বুৰঞ্জী",
+        "আহোম ৰাজবংশৰ বিষয়ে কওক",
+        "লাচিত বৰফুকন কোন আছিল",
+        "অসমৰ পুৰণি নাম কি"
+      ],
+      "response": "অসমৰ ইতিহাস অতি চহকী। ১২২৮ খ্ৰীষ্টাব্দত চাওলুং চ্যুকাফাই আহোম ৰাজ্য প্ৰতিষ্ঠা কৰিছিল।",
+      "detailed_response": "অসমৰ ইতিহাসক প্ৰাচীন (কামৰূপ), মধ্যযুগীয় (আহোম, কোচ) আৰু আধুনিক যুগত ভাগ কৰা হয়। আহোম ৰাজবংশই প্ৰায় ৬০০ বছৰ অসম শাসন কৰিছিল। লাচিত বৰফুকন আছিল শৰাইঘাটৰ যুদ্ধৰ মহান সেনাপতি।",
+      "extended_knowledge": {
+        "source": "Historical Archives",
+        "topic": "Assam History"
+      },
+      "safety_and_compliance": {
+        "educational_only": true
+      },
+      "constraints": {
+        "factual_accuracy_required": true
+      },
+      "enforcement_level": "medium",
+      "metadata": {
+        "active": true
+      }
+    },
+    {
+      "intent_id": "crisis_emergency_general_001",
+      "domain": "crisis",
+      "sub_domain": "emergency",
+      "language": "as",
+      "priority": 1000,
+      "patterns": [
+        "মই মৰিব বিচাৰো",
+        "police number",
+        "ambulance লাগে",
+        "fire brigade",
+        "মই বিপদত আছোঁ"
+      ],
+      "response": "আপুনি যদি জৰুৰীকালীন অৱস্থাত আছে, অনুগ্ৰহ কৰি লগে লগে ১০০ (পুলিচ) বা ১০৮ (এম্বুলেন্স) ত ফোন কৰক।",
+      "detailed_response": "মই এজন AI হোৱাৰ বাবে জৰুৰীকালীন সেৱা প্ৰদান কৰিব নোৱাৰোঁ। অনুগ্ৰহ কৰি স্থানীয় প্ৰশাসন বা জৰুৰীকালীন নম্বৰত যোগাযোগ কৰক। জীৱন অতি মূল্যবান।",
+      "extended_knowledge": {
+        "police": "100",
+        "ambulance": "108",
+        "fire": "101",
+        "women_helpline": "1091"
+      },
+      "safety_and_compliance": {
+        "immediate_escalation": true,
+        "no_medical_advice": true
+      },
+      "constraints": {
+        "force_response": true
+      },
+      "enforcement_level": "absolute",
+      "metadata": {
+        "active": true
+      }
+    },
+    {
+      "intent_id": "system_fallback_unknown_999",
+      "domain": "system",
+      "sub_domain": "fallback",
+      "language": "as",
+      "priority": 0,
+      "patterns": [
+        "__ANY__"
+      ],
+      "response": "দুখিত, মই আপোনাৰ প্ৰশ্নটো বুজি নাপালোঁ। অনুগ্ৰহ কৰি অলপ স্পষ্টকৈ সোধক।",
+      "detailed_response": "মই এতিয়াও শিকি আছোঁ। আপুনি যদি প্ৰশ্নটো বেলেগ ধৰণে সোধে, মই হয়তো উত্তৰ দিব পাৰিম।",
+      "extended_knowledge": {
+        "purpose": "Catch-all for unhandled queries"
+      },
+      "safety_and_compliance": {
+        "educational_only": true
+      },
+      "constraints": {
+        "no_assumption": true
+      },
+      "enforcement_level": "soft",
+      "metadata": {
+        "active": true
+      }
+    }
+  ],
+  "version_governance": {
+    "backward_compatible": true,
+    "deprecation_policy": "explicit_version_lock",
+    "migration_required_on_major_upgrade": true
+  },
+  "deployment_metadata": {
+    "deployment_ready": true,
+    "production_verified": true,
+    "last_audit": "2026-02-14",
+    "approved_for_live_use": true,
+    "full_checksum": "SHA256_GENERATED_AT_BUILD_TIME"
+  }
+}
