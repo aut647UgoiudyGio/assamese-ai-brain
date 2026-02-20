@@ -90,7 +90,7 @@ app.post('/api/chat', async (req, res) => {
             }
 
             // Gemini-লৈ মেছেজ পঠিয়াওক
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const promptContext = dynamicEngine.fallback_prompt_injection;
             const finalPrompt = `${promptContext}\n\nপ্ৰশ্ন: ${message}`;
 
