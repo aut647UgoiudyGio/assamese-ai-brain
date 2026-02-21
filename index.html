@@ -17,7 +17,7 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; height: 100vh; }
-        .chat-container { width: 100%; max-width: 800px; background: var(--chat-bg); display: flex; flex-direction: column; height: 100%; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
+        .chat-container { width: 100%; max-width: 800px; background: var(--chat-bg); display: flex; flex-direction: column; height: 100%; box-shadow: 0 0 15px rgba(0,0,0,0.05); position: relative; }
         .header { background-color: var(--chat-bg); padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
         .header h2 { font-size: 1.2rem; color: #202123; display: flex; align-items: center; gap: 10px; }
         .header h2 i { color: var(--primary-color); }
@@ -44,9 +44,28 @@
         .dot:nth-child(2) { animation-delay: 0.2s; }
         .dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+
+        /* নতুন বিজ্ঞাপনৰ বাকচ (Modal) ৰ ডিজাইন */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; justify-content: center; align-items: center; flex-direction: column; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .timer-text { color: red; font-weight: bold; margin: 10px 0 15px 0; font-size: 1.1rem; }
+        .claim-btn { width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
+
+<div id="adModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="color: #333;">🎁 ক্ৰিপ্টো বিজ্ঞাপন</h3>
+        <p id="adTimer" class="timer-text">অনুগ্ৰহ কৰি ১০ ছেকেণ্ড ৰৈ দিয়ক...</p>
+        
+        <div id="frame" style="width: 100%; margin: auto; position: relative; z-index: 99998; min-height: 100px; background: #f0f0f0; border: 1px solid #ccc;">
+            <iframe data-aa='2428261' src='//acceptable.a-ads.com/2428261/?size=Adaptive' style='border:0; padding:0; width:100%; height:100%; overflow:hidden; display:block; margin:auto'></iframe>
+        </div>
+        
+        <button id="closeAdBtn" class="claim-btn" disabled>ৰৈ দিয়ক...</button>
+    </div>
+</div>
 
 <div class="chat-container">
     <div class="header">
@@ -75,7 +94,7 @@
 </div>
 
 <script>
-    const userId = "user_" + Math.floor(Math.random() * 1000000); // Generate unique temporary ID for web user
+    const userId = "user_" + Math.floor(Math.random() * 1000000); 
     
     async function sendMessage() {
         const inputField = document.getElementById('userInput');
@@ -114,69 +133,96 @@
         }
     }
 
-// --- ১. নতুন Adblock ধৰা পেলোৱা ফাংচন ---
+// Adblock ধৰা পেলোৱা ফাংচন
 async function detectAdBlock() {
-    // এটা নকল বিজ্ঞাপনৰ বাকচ বনোৱা হৈছে
     let adTest = document.createElement('div');
     adTest.innerHTML = '&nbsp;';
-    adTest.className = 'adsbox ad-placement doubleclick ad-banner'; // Adblocker-এ ব্লক কৰা সাধাৰণ নাম
+    adTest.className = 'adsbox ad-placement doubleclick ad-banner'; 
     adTest.style.position = 'absolute';
-    adTest.style.top = '-1000px'; // স্ক্ৰীণৰ বাহিৰত ৰখা হৈছে যাতে মানুহে নেদেখে
+    adTest.style.top = '-1000px'; 
     document.body.appendChild(adTest);
     
-    await new Promise(resolve => setTimeout(resolve, 100)); // ব্ৰাউজাৰক ব্লক কৰিবলৈ অলপ সময় দিয়া হৈছে
+    await new Promise(resolve => setTimeout(resolve, 100)); 
     
     let isAdBlocked = false;
-    // যদি বাকচটোৰ দৈৰ্ঘ্য ০ হৈ যায় বা গায়ব হৈ যায়, তেন্তে Adblocker আছে
     if (adTest.offsetHeight === 0 || window.getComputedStyle(adTest).display === 'none') {
         isAdBlocked = true;
     }
-    adTest.remove(); // পৰীক্ষাৰ পাছত বাকচটো আঁতৰাই পেলোৱা হৈছে
+    adTest.remove(); 
     return isAdBlocked;
 }
 
-// --- ২. নতুন আৰু সুৰক্ষিত ৰিচাৰ্জ ফাংচন ---
+// নতুন আৰু সুৰক্ষিত ৰিচাৰ্জ ফাংচন (১০ ছেকেণ্ডৰ টাইমাৰৰ সৈতে)
 async function rechargeTokens() {
     document.getElementById('rechargeBtn').innerText = "পৰীক্ষা কৰি থকা হৈছে...";
     document.getElementById('rechargeBtn').disabled = true;
     
-    // প্ৰথমে Adblocker চেক কৰিব
     let adBlockEnabled = await detectAdBlock();
     
     if (adBlockEnabled) {
-        // যদি Adblocker বা Brave Shield অন থাকে
         alert("⚠️ সতৰ্কবাণী: আপোনাৰ ব্ৰাউজাৰত Adblocker বা Brave Shield অন হৈ আছে! ফ্ৰী টোকেন পাবলৈ অনুগ্ৰহ কৰি ইয়াক বন্ধ (Disable) কৰক।");
         appendMessage('bot', "⚠️ **Adblocker ধৰা পৰিছে!** টোকেন ৰিচাৰ্জ কৰিবলৈ আপোনাৰ Brave Shield বা Adblocker বন্ধ কৰি আকৌ চেষ্টা কৰক।");
-        
         document.getElementById('rechargeBtn').innerText = "বিজ্ঞাপন চাওক (Recharge 500 Coins)";
         document.getElementById('rechargeBtn').disabled = false;
-        return; // ৰিচাৰ্জ প্ৰক্ৰিয়া ইয়াতেই ৰৈ যাব
+        return; 
     }
     
-    // যদি Adblocker নাই, তেন্তে ৰিচাৰ্জ হ'ব
-    document.getElementById('rechargeBtn').innerText = "ৰৈ দিয়ক...";
+    // Adblocker নাথাকিলে বিজ্ঞাপনৰ বাকচটো (Modal) খোল খাব
+    document.getElementById('adModal').style.display = 'flex';
+    let timeLeft = 10; // ১০ ছেকেণ্ড ৰ'ব লাগিব
     
-    // (ইয়াত আমি A-ADS ৰ আচল ক'ড লগাম, বৰ্তমান ২ ছেকেণ্ড ৰৈ ৰিচাৰ্জ দিম)
-    setTimeout(async () => {
-        try {
-            const response = await fetch('/api/reward', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: userId, amount: 500 })
-            });
-            const data = await response.json();
+    let timerText = document.getElementById('adTimer');
+    let closeBtn = document.getElementById('closeAdBtn');
+    
+    timerText.innerText = `অনুগ্ৰহ কৰি ${timeLeft} ছেকেণ্ড ৰৈ দিয়ক...`;
+    timerText.style.color = "red";
+    closeBtn.innerText = "ৰৈ দিয়ক...";
+    closeBtn.disabled = true;
+    closeBtn.style.background = "#ccc";
+    closeBtn.style.cursor = "not-allowed";
+
+    // ১০ ছেকেণ্ডৰ টাইমাৰ আৰম্ভ
+    let timer = setInterval(() => {
+        timeLeft--;
+        timerText.innerText = `অনুগ্ৰহ কৰি ${timeLeft} ছেকেণ্ড ৰৈ দিয়ক...`;
+        
+        // টাইমাৰ শেষ হ'লে
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            timerText.innerText = "✅ ধন্যবাদ! আপোনাৰ ৰিচাৰ্জ সাজু।";
+            timerText.style.color = "#10a37f";
             
-            if (data.success) {
-                document.getElementById('tokenDisplay').innerText = `Tokens: ${data.new_balance}`;
-                document.getElementById('rechargeBtn').style.display = 'none';
-                appendMessage('bot', "🎉 ৰিচাৰ্জ সফল হৈছে! এতিয়া আপুনি আকৌ প্ৰশ্ন সুধিব পাৰিব।");
+            closeBtn.innerText = "ৰিচাৰ্জ কৰক (500 Coins)";
+            closeBtn.disabled = false;
+            closeBtn.style.background = "#10a37f";
+            closeBtn.style.cursor = "pointer";
+            
+            // বুটামটো টিপিলে টোকেন আহিব
+            closeBtn.onclick = async function() {
+                document.getElementById('adModal').style.display = 'none'; // বাকচটো বন্ধ হ'ব
+                document.getElementById('rechargeBtn').innerText = "ৰৈ দিয়ক...";
+                
+                try {
+                    const response = await fetch('/api/reward', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: userId, amount: 500 })
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        document.getElementById('tokenDisplay').innerText = `Tokens: ${data.new_balance}`;
+                        document.getElementById('rechargeBtn').style.display = 'none';
+                        appendMessage('bot', "🎉 ৰিচাৰ্জ সফল হৈছে! এতিয়া আপুনি আকৌ প্ৰশ্ন সুধিব পাৰিব।");
+                    }
+                } catch (error) {
+                    alert("ৰিচাৰ্জ বিফল হৈছে!");
+                }
+                document.getElementById('rechargeBtn').innerText = "বিজ্ঞাপন চাওক (Recharge 500 Coins)";
+                document.getElementById('rechargeBtn').disabled = false;
             }
-        } catch (error) {
-            alert("ৰিচাৰ্জ বিফল হৈছে!");
         }
-        document.getElementById('rechargeBtn').innerText = "বিজ্ঞাপন চাওক (Recharge 500 Coins)";
-        document.getElementById('rechargeBtn').disabled = false;
-    }, 2000);
+    }, 1000);
 }
 
     function appendMessage(sender, text) {
