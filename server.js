@@ -137,7 +137,10 @@ app.post('/api/reward', async (req, res) => {
         res.status(500).json({ error: "Error updating balance" });
     }
 });
-
+// --- ৫. Webpage (Frontend) Serve কৰা ---
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
