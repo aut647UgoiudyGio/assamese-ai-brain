@@ -1,1 +1,200 @@
+<!DOCTYPE html>
+<html lang="as">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assamese AI Brain Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --chat-bg: #ffffff;
+            --primary-color: #10a37f;
+            --text-color: #333;
+            --bot-msg-bg: #f7f7f8;
+            --user-msg-bg: #e3f2fd;
+            --border-color: #e5e5e5;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; height: 100vh; }
+        .chat-container { width: 100%; max-width: 800px; background: var(--chat-bg); display: flex; flex-direction: column; height: 100%; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
+        .header { background-color: var(--chat-bg); padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+        .header h2 { font-size: 1.2rem; color: #202123; display: flex; align-items: center; gap: 10px; }
+        .header h2 i { color: var(--primary-color); }
+        .token-count { font-size: 0.9rem; background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 15px; font-weight: bold; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .message { display: flex; gap: 15px; max-width: 85%; }
+        .message.user { align-self: flex-end; flex-direction: row-reverse; }
+        .avatar { width: 35px; height: 35px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .bot-avatar { background-color: var(--primary-color); color: white; }
+        .user-avatar { background-color: #007bff; color: white; }
+        .msg-text { padding: 12px 16px; border-radius: 8px; line-height: 1.5; font-size: 1rem; }
+        .bot .msg-text { background-color: var(--bot-msg-bg); border: 1px solid var(--border-color); color: #333; }
+        .user .msg-text { background-color: var(--user-msg-bg); color: #004085; }
+        .input-area { padding: 20px; background: var(--chat-bg); border-top: 1px solid var(--border-color); display: flex; gap: 10px; flex-direction: column; }
+        .input-wrapper { display: flex; gap: 10px; background: white; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 25px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        input { flex: 1; border: none; padding: 10px; outline: none; font-size: 1rem; background: transparent; }
+        button { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-size: 1rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        button:hover { background-color: #0d8c6d; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .recharge-btn { background-color: #ffc107; color: #000; width: 100%; display: none; margin-bottom: 10px; font-weight: bold; }
+        .recharge-btn:hover { background-color: #e0a800; }
+        .typing { display: none; align-items: center; gap: 5px; padding: 10px; color: #666; font-style: italic; font-size: 0.9rem;}
+        .dot { width: 6px; height: 6px; background: #666; border-radius: 50%; animation: blink 1.4s infinite both; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+    </style>
+</head>
+<body>
 
+<div class="chat-container">
+    <div class="header">
+        <h2><i class="fas fa-robot"></i> Assamese AI Brain</h2>
+        <div class="token-count" id="tokenDisplay">Tokens: 50</div>
+    </div>
+    
+    <div class="chat-box" id="chatBox">
+        <div class="message bot">
+            <div class="avatar bot-avatar"><i class="fas fa-robot"></i></div>
+            <div class="msg-text">নমস্কাৰ! মই আপোনাৰ Advanced AI Assistant. মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?</div>
+        </div>
+    </div>
+
+    <div class="typing" id="typingIndicator">
+        AI-য়ে ভাবি আছে <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+
+    <div class="input-area">
+        <button class="recharge-btn" id="rechargeBtn" onclick="rechargeTokens()"><i class="fas fa-video"></i> বিজ্ঞাপন চাওক (Recharge 500 Coins)</button>
+        <div class="input-wrapper">
+            <input type="text" id="userInput" placeholder="আপোনাৰ প্ৰশ্ন ইয়াত লিখক..." onkeypress="handleKeyPress(event)">
+            <button id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const userId = "user_" + Math.floor(Math.random() * 1000000); // Generate unique temporary ID for web user
+    
+    async function sendMessage() {
+        const inputField = document.getElementById('userInput');
+        const message = inputField.value.trim();
+        if (!message) return;
+
+        appendMessage('user', message);
+        inputField.value = '';
+        document.getElementById('sendBtn').disabled = true;
+        document.getElementById('typingIndicator').style.display = 'flex';
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId, message: message })
+            });
+            const data = await response.json();
+            
+            document.getElementById('typingIndicator').style.display = 'none';
+            document.getElementById('sendBtn').disabled = false;
+
+            if (data.action_required === "watch_ad") {
+                appendMessage('bot', data.response);
+                document.getElementById('rechargeBtn').style.display = 'block';
+            } else {
+                appendMessage('bot', data.response);
+                if(data.remaining_balance !== undefined) {
+                    document.getElementById('tokenDisplay').innerText = `Tokens: ${data.remaining_balance}`;
+                }
+            }
+        } catch (error) {
+            document.getElementById('typingIndicator').style.display = 'none';
+            document.getElementById('sendBtn').disabled = false;
+            appendMessage('bot', "ছাৰ্ভাৰৰ সৈতে সংযোগ স্থাপনত সমস্যা হৈছে।");
+        }
+    }
+
+// --- ১. নতুন Adblock ধৰা পেলোৱা ফাংচন ---
+async function detectAdBlock() {
+    // এটা নকল বিজ্ঞাপনৰ বাকচ বনোৱা হৈছে
+    let adTest = document.createElement('div');
+    adTest.innerHTML = '&nbsp;';
+    adTest.className = 'adsbox ad-placement doubleclick ad-banner'; // Adblocker-এ ব্লক কৰা সাধাৰণ নাম
+    adTest.style.position = 'absolute';
+    adTest.style.top = '-1000px'; // স্ক্ৰীণৰ বাহিৰত ৰখা হৈছে যাতে মানুহে নেদেখে
+    document.body.appendChild(adTest);
+    
+    await new Promise(resolve => setTimeout(resolve, 100)); // ব্ৰাউজাৰক ব্লক কৰিবলৈ অলপ সময় দিয়া হৈছে
+    
+    let isAdBlocked = false;
+    // যদি বাকচটোৰ দৈৰ্ঘ্য ০ হৈ যায় বা গায়ব হৈ যায়, তেন্তে Adblocker আছে
+    if (adTest.offsetHeight === 0 || window.getComputedStyle(adTest).display === 'none') {
+        isAdBlocked = true;
+    }
+    adTest.remove(); // পৰীক্ষাৰ পাছত বাকচটো আঁতৰাই পেলোৱা হৈছে
+    return isAdBlocked;
+}
+
+// --- ২. নতুন আৰু সুৰক্ষিত ৰিচাৰ্জ ফাংচন ---
+async function rechargeTokens() {
+    document.getElementById('rechargeBtn').innerText = "পৰীক্ষা কৰি থকা হৈছে...";
+    document.getElementById('rechargeBtn').disabled = true;
+    
+    // প্ৰথমে Adblocker চেক কৰিব
+    let adBlockEnabled = await detectAdBlock();
+    
+    if (adBlockEnabled) {
+        // যদি Adblocker বা Brave Shield অন থাকে
+        alert("⚠️ সতৰ্কবাণী: আপোনাৰ ব্ৰাউজাৰত Adblocker বা Brave Shield অন হৈ আছে! ফ্ৰী টোকেন পাবলৈ অনুগ্ৰহ কৰি ইয়াক বন্ধ (Disable) কৰক।");
+        appendMessage('bot', "⚠️ **Adblocker ধৰা পৰিছে!** টোকেন ৰিচাৰ্জ কৰিবলৈ আপোনাৰ Brave Shield বা Adblocker বন্ধ কৰি আকৌ চেষ্টা কৰক।");
+        
+        document.getElementById('rechargeBtn').innerText = "বিজ্ঞাপন চাওক (Recharge 500 Coins)";
+        document.getElementById('rechargeBtn').disabled = false;
+        return; // ৰিচাৰ্জ প্ৰক্ৰিয়া ইয়াতেই ৰৈ যাব
+    }
+    
+    // যদি Adblocker নাই, তেন্তে ৰিচাৰ্জ হ'ব
+    document.getElementById('rechargeBtn').innerText = "ৰৈ দিয়ক...";
+    
+    // (ইয়াত আমি A-ADS ৰ আচল ক'ড লগাম, বৰ্তমান ২ ছেকেণ্ড ৰৈ ৰিচাৰ্জ দিম)
+    setTimeout(async () => {
+        try {
+            const response = await fetch('/api/reward', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId, amount: 500 })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('tokenDisplay').innerText = `Tokens: ${data.new_balance}`;
+                document.getElementById('rechargeBtn').style.display = 'none';
+                appendMessage('bot', "🎉 ৰিচাৰ্জ সফল হৈছে! এতিয়া আপুনি আকৌ প্ৰশ্ন সুধিব পাৰিব।");
+            }
+        } catch (error) {
+            alert("ৰিচাৰ্জ বিফল হৈছে!");
+        }
+        document.getElementById('rechargeBtn').innerText = "বিজ্ঞাপন চাওক (Recharge 500 Coins)";
+        document.getElementById('rechargeBtn').disabled = false;
+    }, 2000);
+}
+
+    function appendMessage(sender, text) {
+        const chatBox = document.getElementById('chatBox');
+        const icon = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+        const msgHTML = `
+            <div class="message ${sender}">
+                <div class="avatar ${sender}-avatar">${icon}</div>
+                <div class="msg-text">${text.replace(/\n/g, '<br>')}</div>
+            </div>
+        `;
+        chatBox.innerHTML += msgHTML;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === "Enter") sendMessage();
+    }
+</script>
+</body>
+</html>
