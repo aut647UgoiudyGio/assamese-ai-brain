@@ -21,6 +21,9 @@
         .header { background-color: var(--chat-bg); padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
         .header h2 { font-size: 1.2rem; color: #202123; display: flex; align-items: center; gap: 10px; }
         .header h2 i { color: var(--primary-color); }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .delete-btn { color: #dc3545; cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
+        .delete-btn:hover { color: #a71d2a; }
         .token-count { font-size: 0.9rem; background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 15px; font-weight: bold; }
         .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
         .message { display: flex; gap: 15px; max-width: 85%; }
@@ -90,11 +93,14 @@
 <div class="chat-container">
     <div class="header">
         <h2><i class="fas fa-robot"></i> Assamese AI Brain</h2>
-        <div class="token-count" id="tokenDisplay">Tokens: 50</div>
+        <div class="header-right">
+            <i class="fas fa-trash-alt delete-btn" onclick="clearChatHistory()" title="পুৰণি কথা-বতৰা মচি পেলাওক"></i>
+            <div class="token-count" id="tokenDisplay">Tokens: 50</div>
+        </div>
     </div>
     
     <div class="chat-box" id="chatBox">
-        <div class="message bot">
+        <div class="message bot" id="defaultGreeting">
             <div class="avatar bot-avatar"><i class="fas fa-robot"></i></div>
             <div class="msg-text">নমস্কাৰ! মই আপোনাৰ Advanced AI Assistant. মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?</div>
         </div>
@@ -121,26 +127,46 @@
 </div>
 
 <script>
-    const userId = "user_" + Math.floor(Math.random() * 1000000); 
-    
+    // --- User ID আৰু Chat History লজিক ---
+    // ব্যৱহাৰকাৰীৰ একেটা ID ধৰি ৰাখিবলৈ LocalStorage ব্যৱহাৰ কৰা হৈছে
+    let userId = localStorage.getItem('assamese_ai_user_id');
+    if (!userId) {
+        userId = "user_" + Math.floor(Math.random() * 1000000);
+        localStorage.setItem('assamese_ai_user_id', userId);
+    }
+
+    // ৱেবছাইট খোল খালেই পুৰণি হিষ্ট্ৰী লোড কৰা হ'ব
+    window.onload = function() {
+        const savedHistory = localStorage.getItem('assamese_ai_chat_history');
+        if (savedHistory) {
+            document.getElementById('chatBox').innerHTML = savedHistory;
+            // একেবাৰে তললৈ স্ক্ৰল কৰা
+            const chatBox = document.getElementById('chatBox');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    };
+
+    // হিষ্ট্ৰী চেভ কৰা ফাংচন
+    function saveChatHistory() {
+        const chatBoxHTML = document.getElementById('chatBox').innerHTML;
+        localStorage.setItem('assamese_ai_chat_history', chatBoxHTML);
+    }
+
+    // হিষ্ট্ৰী ডিলিট কৰা ফাংচন
+    function clearChatHistory() {
+        if (confirm("আপুনি সকলো পুৰণি কথা-বতৰা মচি পেলাবলৈ নিশ্চিত নে?")) {
+            localStorage.removeItem('assamese_ai_chat_history');
+            location.reload(); // পেজটো ৰিফ্ৰেছ কৰিব
+        }
+    }
+    // --- End of History Logic ---
+
     // --- Info Pages Data ---
     const pagesData = {
-        'about': {
-            title: 'About Us',
-            body: '<p><strong>Assamese AI Brain Pro</strong> লৈ আপোনাক স্বাগতম।</p><p>আমাৰ উদ্দেশ্য হৈছে অসমীয়া ভাষাত এখন উন্নত আৰু সহজে ব্যৱহাৰ কৰিব পৰা কৃত্ৰিম বুদ্ধিমত্তা (AI) প্লেটফৰ্ম গঢ়ি তোলা। আমি বিশ্বাস কৰোঁ যে প্ৰযুক্তি সকলোৰে বাবে উপলব্ধ হোৱা উচিত, আৰু মাতৃভাষাত ইয়াৰ ব্যৱহাৰে শিক্ষা আৰু দৈনন্দিন কাম-কাজত বহু পৰিমাণে সহায় কৰিব পাৰে।</p><p>এই AI টোৱে আপোনাক সাধাৰণ জ্ঞান, প্ৰবন্ধ লিখা, অনুবাদ কৰা আৰু বিভিন্ন প্ৰশ্নৰ উত্তৰ দিয়াত সহায় কৰিব।</p>'
-        },
-        'contact': {
-            title: 'Contact Us',
-            body: '<p>আমি আপোনাৰ মতামত আৰু পৰামৰ্শ সদায় আদৰণি জনাওঁ। যিকোনো ধৰণৰ সহায় বা ব্যৱসায়িক কথা-বতৰাৰ বাবে আমাৰ সৈতে যোগাযোগ কৰক:</p><ul><li><strong>ঠিকনা:</strong> যোৰহাট, অসম, ভাৰত</li><li><strong>ইমেইল:</strong> contact@assamese-ai-brain.onrender.com</li></ul><p>আমি যিমান সোনকালে সম্ভৱ আপোনাৰ সৈতে যোগাযোগ কৰিবলৈ চেষ্টা কৰিম।</p>'
-        },
-        'privacy': {
-            title: 'Privacy Policy',
-            body: '<p>আমাৰ ৱেবছাইট ব্যৱহাৰ কৰাৰ সময়ত আপোনাৰ গোপনীয়তা ৰক্ষা কৰাটো আমাৰ প্ৰধান লক্ষ্য।</p><p><strong>১. ডাটা সংগ্ৰহ:</strong> আমি আপোনাৰ কোনো ব্যক্তিগত বা সংবেদনশীল তথ্য (যেনে পাছৱৰ্ড বা বেংকৰ সবিশেষ) সংগ্ৰহ নকৰোঁ। ব্যৱহাৰকাৰীৰ অভিজ্ঞতা উন্নত কৰিবলৈ আমি কেৱল সাধাৰণ কুকিজ (Cookies) আৰু টোকেন ব্যৱস্থা ব্যৱহাৰ কৰোঁ।</p><p><strong>২. তৃতীয় পক্ষৰ সেৱা:</strong> আমি বিজ্ঞাপনৰ বাবে A-ADS আৰু AI উত্তৰৰ বাবে Google Gemini API ব্যৱহাৰ কৰোঁ। তেওঁলোকৰ নিজা গোপনীয়তা নীতি থাকিব পাৰে।</p><p><strong>৩. ডাটাৰ সুৰক্ষা:</strong> আপোনাৰ প্ৰশ্ন আৰু তথ্যসমূহ সুৰক্ষিত ৰাখিবলৈ আমি উন্নত প্ৰযুক্তি ব্যৱহাৰ কৰোঁ।</p>'
-        },
-        'terms': {
-            title: 'Terms & Conditions',
-            body: '<p>আমাৰ ৱেবছাইট ব্যৱহাৰ কৰাৰ আগতে অনুগ্ৰহ কৰি তলৰ নিয়মাৱলীসমূহ পঢ়ি লওক:</p><p><strong>১. ব্যৱহাৰৰ চৰ্ত:</strong> এই AI টুলটো কেৱল শিক্ষামূলক আৰু তথ্যমূলক উদ্দেশ্যৰ বাবে দিয়া হৈছে। ইয়াৰ দ্বাৰা পোৱা উত্তৰসমূহ ১০০% শুদ্ধ নহ\'বও পাৰে, সেয়েহে গুৰুত্বপূৰ্ণ সিদ্ধান্তৰ বাবে বিশেষজ্ঞৰ পৰামৰ্শ ল\'ব।</p><p><strong>২. নীতিবিৰোধী কাম:</strong> এই প্লেটফৰ্মৰ জৰিয়তে কোনো ধৰণৰ অসামাজিক, অবৈধ বা ক্ষতিকাৰক তথ্য বিচাৰিব নোৱাৰিব।</p><p><strong>৩. টোকেন ব্যৱস্থা:</strong> ফ্ৰী টোকেন শেষ হ\'লে আপুনি বিজ্ঞাপন চাই পুনৰ টোকেন লাভ কৰিব পাৰিব। Adblocker ব্যৱহাৰ কৰিলে সেৱা বাধাগ্ৰস্ত হ\'ব পাৰে।</p>'
-        }
+        'about': { title: 'About Us', body: '<p><strong>Assamese AI Brain Pro</strong> লৈ আপোনাক স্বাগতম।</p><p>আমাৰ উদ্দেশ্য হৈছে অসমীয়া ভাষাত এখন উন্নত আৰু সহজে ব্যৱহাৰ কৰিব পৰা কৃত্ৰিম বুদ্ধিমত্তা (AI) প্লেটফৰ্ম গঢ়ি তোলা।</p>' },
+        'contact': { title: 'Contact Us', body: '<p>আমি আপোনাৰ মতামত আৰু পৰামৰ্শ সদায় আদৰণি জনাওঁ।</p><ul><li><strong>ঠিকনা:</strong> যোৰহাট, অসম, ভাৰত</li><li><strong>ইমেইল:</strong> contact@assamese-ai-brain.onrender.com</li></ul>' },
+        'privacy': { title: 'Privacy Policy', body: '<p>আমাৰ ৱেবছাইট ব্যৱহাৰ কৰাৰ সময়ত আপোনাৰ গোপনীয়তা ৰক্ষা কৰাটো আমাৰ প্ৰধান লক্ষ্য। আমি আপোনাৰ কোনো ব্যক্তিগত তথ্য সংগ্ৰহ নকৰোঁ।</p>' },
+        'terms': { title: 'Terms & Conditions', body: '<p>এই AI টুলটো কেৱল শিক্ষামূলক আৰু তথ্যমূলক উদ্দেশ্যৰ বাবে দিয়া হৈছে। ইয়াৰ দ্বাৰা পোৱা উত্তৰসমূহ ১০০% শুদ্ধ নহ\'বও পাৰে।</p>' }
     };
 
     function showPage(pageId) {
@@ -152,7 +178,6 @@
     function closeInfoModal() {
         document.getElementById('infoModal').style.display = 'none';
     }
-    // --- End of Info Pages Logic ---
 
     async function sendMessage() {
         const inputField = document.getElementById('userInput');
@@ -288,6 +313,9 @@ async function rechargeTokens() {
         `;
         chatBox.innerHTML += msgHTML;
         chatBox.scrollTop = chatBox.scrollHeight;
+        
+        // মেছেজ অহাৰ লগে লগে হিষ্ট্ৰী চেভ কৰা হ'ব
+        saveChatHistory();
     }
 
     function handleKeyPress(event) {
