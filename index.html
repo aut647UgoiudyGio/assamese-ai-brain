@@ -45,11 +45,23 @@
         .dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
 
-        /* নতুন বিজ্ঞাপনৰ বাকচ (Modal) ৰ ডিজাইন */
+        /* Modal Design */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; justify-content: center; align-items: center; flex-direction: column; }
         .modal-content { background: white; padding: 20px; border-radius: 10px; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .timer-text { color: red; font-weight: bold; margin: 10px 0 15px 0; font-size: 1.1rem; }
         .claim-btn { width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; font-weight: bold; }
+
+        /* Info Modal Design for About Us, Contact etc. */
+        .info-modal-content { background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .info-modal-content h3 { color: var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 5px; }
+        .info-modal-content p { margin-bottom: 10px; line-height: 1.6; font-size: 0.95rem; }
+        .close-info-btn { background-color: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; float: right; margin-top: 15px; }
+        .close-info-btn:hover { background-color: #c82333; }
+
+        /* Footer Design */
+        .footer { background-color: var(--chat-bg); padding: 10px; text-align: center; border-top: 1px solid var(--border-color); font-size: 0.85rem; }
+        .footer a { color: var(--primary-color); text-decoration: none; margin: 0 8px; cursor: pointer; }
+        .footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -64,6 +76,14 @@
         </div>
         
         <button id="closeAdBtn" class="claim-btn" disabled>ৰৈ দিয়ক...</button>
+    </div>
+</div>
+
+<div id="infoModal" class="modal-overlay">
+    <div class="info-modal-content">
+        <h3 id="infoTitle">Title</h3>
+        <div id="infoBody">Content goes here...</div>
+        <button class="close-info-btn" onclick="closeInfoModal()">বন্ধ কৰক</button>
     </div>
 </div>
 
@@ -91,11 +111,49 @@
             <button id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
+
+    <div class="footer">
+        <a onclick="showPage('about')">About Us</a> |
+        <a onclick="showPage('contact')">Contact</a> |
+        <a onclick="showPage('privacy')">Privacy Policy</a> |
+        <a onclick="showPage('terms')">Terms & Conditions</a>
+    </div>
 </div>
 
 <script>
     const userId = "user_" + Math.floor(Math.random() * 1000000); 
     
+    // --- Info Pages Data ---
+    const pagesData = {
+        'about': {
+            title: 'About Us',
+            body: '<p><strong>Assamese AI Brain Pro</strong> লৈ আপোনাক স্বাগতম।</p><p>আমাৰ উদ্দেশ্য হৈছে অসমীয়া ভাষাত এখন উন্নত আৰু সহজে ব্যৱহাৰ কৰিব পৰা কৃত্ৰিম বুদ্ধিমত্তা (AI) প্লেটফৰ্ম গঢ়ি তোলা। আমি বিশ্বাস কৰোঁ যে প্ৰযুক্তি সকলোৰে বাবে উপলব্ধ হোৱা উচিত, আৰু মাতৃভাষাত ইয়াৰ ব্যৱহাৰে শিক্ষা আৰু দৈনন্দিন কাম-কাজত বহু পৰিমাণে সহায় কৰিব পাৰে।</p><p>এই AI টোৱে আপোনাক সাধাৰণ জ্ঞান, প্ৰবন্ধ লিখা, অনুবাদ কৰা আৰু বিভিন্ন প্ৰশ্নৰ উত্তৰ দিয়াত সহায় কৰিব।</p>'
+        },
+        'contact': {
+            title: 'Contact Us',
+            body: '<p>আমি আপোনাৰ মতামত আৰু পৰামৰ্শ সদায় আদৰণি জনাওঁ। যিকোনো ধৰণৰ সহায় বা ব্যৱসায়িক কথা-বতৰাৰ বাবে আমাৰ সৈতে যোগাযোগ কৰক:</p><ul><li><strong>ঠিকনা:</strong> যোৰহাট, অসম, ভাৰত</li><li><strong>ইমেইল:</strong> contact@assamese-ai-brain.onrender.com</li></ul><p>আমি যিমান সোনকালে সম্ভৱ আপোনাৰ সৈতে যোগাযোগ কৰিবলৈ চেষ্টা কৰিম।</p>'
+        },
+        'privacy': {
+            title: 'Privacy Policy',
+            body: '<p>আমাৰ ৱেবছাইট ব্যৱহাৰ কৰাৰ সময়ত আপোনাৰ গোপনীয়তা ৰক্ষা কৰাটো আমাৰ প্ৰধান লক্ষ্য।</p><p><strong>১. ডাটা সংগ্ৰহ:</strong> আমি আপোনাৰ কোনো ব্যক্তিগত বা সংবেদনশীল তথ্য (যেনে পাছৱৰ্ড বা বেংকৰ সবিশেষ) সংগ্ৰহ নকৰোঁ। ব্যৱহাৰকাৰীৰ অভিজ্ঞতা উন্নত কৰিবলৈ আমি কেৱল সাধাৰণ কুকিজ (Cookies) আৰু টোকেন ব্যৱস্থা ব্যৱহাৰ কৰোঁ।</p><p><strong>২. তৃতীয় পক্ষৰ সেৱা:</strong> আমি বিজ্ঞাপনৰ বাবে A-ADS আৰু AI উত্তৰৰ বাবে Google Gemini API ব্যৱহাৰ কৰোঁ। তেওঁলোকৰ নিজা গোপনীয়তা নীতি থাকিব পাৰে।</p><p><strong>৩. ডাটাৰ সুৰক্ষা:</strong> আপোনাৰ প্ৰশ্ন আৰু তথ্যসমূহ সুৰক্ষিত ৰাখিবলৈ আমি উন্নত প্ৰযুক্তি ব্যৱহাৰ কৰোঁ।</p>'
+        },
+        'terms': {
+            title: 'Terms & Conditions',
+            body: '<p>আমাৰ ৱেবছাইট ব্যৱহাৰ কৰাৰ আগতে অনুগ্ৰহ কৰি তলৰ নিয়মাৱলীসমূহ পঢ়ি লওক:</p><p><strong>১. ব্যৱহাৰৰ চৰ্ত:</strong> এই AI টুলটো কেৱল শিক্ষামূলক আৰু তথ্যমূলক উদ্দেশ্যৰ বাবে দিয়া হৈছে। ইয়াৰ দ্বাৰা পোৱা উত্তৰসমূহ ১০০% শুদ্ধ নহ\'বও পাৰে, সেয়েহে গুৰুত্বপূৰ্ণ সিদ্ধান্তৰ বাবে বিশেষজ্ঞৰ পৰামৰ্শ ল\'ব।</p><p><strong>২. নীতিবিৰোধী কাম:</strong> এই প্লেটফৰ্মৰ জৰিয়তে কোনো ধৰণৰ অসামাজিক, অবৈধ বা ক্ষতিকাৰক তথ্য বিচাৰিব নোৱাৰিব।</p><p><strong>৩. টোকেন ব্যৱস্থা:</strong> ফ্ৰী টোকেন শেষ হ\'লে আপুনি বিজ্ঞাপন চাই পুনৰ টোকেন লাভ কৰিব পাৰিব। Adblocker ব্যৱহাৰ কৰিলে সেৱা বাধাগ্ৰস্ত হ\'ব পাৰে।</p>'
+        }
+    };
+
+    function showPage(pageId) {
+        document.getElementById('infoTitle').innerHTML = pagesData[pageId].title;
+        document.getElementById('infoBody').innerHTML = pagesData[pageId].body;
+        document.getElementById('infoModal').style.display = 'flex';
+    }
+
+    function closeInfoModal() {
+        document.getElementById('infoModal').style.display = 'none';
+    }
+    // --- End of Info Pages Logic ---
+
     async function sendMessage() {
         const inputField = document.getElementById('userInput');
         const message = inputField.value.trim();
@@ -133,7 +191,6 @@
         }
     }
 
-// Adblock ধৰা পেলোৱা ফাংচন
 async function detectAdBlock() {
     let adTest = document.createElement('div');
     adTest.innerHTML = '&nbsp;';
@@ -152,7 +209,6 @@ async function detectAdBlock() {
     return isAdBlocked;
 }
 
-// নতুন আৰু সুৰক্ষিত ৰিচাৰ্জ ফাংচন (১০ ছেকেণ্ডৰ টাইমাৰৰ সৈতে)
 async function rechargeTokens() {
     document.getElementById('rechargeBtn').innerText = "পৰীক্ষা কৰি থকা হৈছে...";
     document.getElementById('rechargeBtn').disabled = true;
@@ -167,9 +223,8 @@ async function rechargeTokens() {
         return; 
     }
     
-    // Adblocker নাথাকিলে বিজ্ঞাপনৰ বাকচটো (Modal) খোল খাব
     document.getElementById('adModal').style.display = 'flex';
-    let timeLeft = 10; // ১০ ছেকেণ্ড ৰ'ব লাগিব
+    let timeLeft = 10; 
     
     let timerText = document.getElementById('adTimer');
     let closeBtn = document.getElementById('closeAdBtn');
@@ -181,12 +236,10 @@ async function rechargeTokens() {
     closeBtn.style.background = "#ccc";
     closeBtn.style.cursor = "not-allowed";
 
-    // ১০ ছেকেণ্ডৰ টাইমাৰ আৰম্ভ
     let timer = setInterval(() => {
         timeLeft--;
         timerText.innerText = `অনুগ্ৰহ কৰি ${timeLeft} ছেকেণ্ড ৰৈ দিয়ক...`;
         
-        // টাইমাৰ শেষ হ'লে
         if (timeLeft <= 0) {
             clearInterval(timer);
             timerText.innerText = "✅ ধন্যবাদ! আপোনাৰ ৰিচাৰ্জ সাজু।";
@@ -197,9 +250,8 @@ async function rechargeTokens() {
             closeBtn.style.background = "#10a37f";
             closeBtn.style.cursor = "pointer";
             
-            // বুটামটো টিপিলে টোকেন আহিব
             closeBtn.onclick = async function() {
-                document.getElementById('adModal').style.display = 'none'; // বাকচটো বন্ধ হ'ব
+                document.getElementById('adModal').style.display = 'none'; 
                 document.getElementById('rechargeBtn').innerText = "ৰৈ দিয়ক...";
                 
                 try {
