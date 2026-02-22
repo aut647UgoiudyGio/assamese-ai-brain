@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- কনফিগাৰেশ্যন (Render-ৰ Environment Variable-ৰ পৰা লব) ---
+// --- কনফিগাৰেশ্যন ---
 const PORT = process.env.PORT || 3000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -20,12 +20,11 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 // --- ২. Brain JSON ফাইল লোড ---
 const brainData = JSON.parse(fs.readFileSync('./brain.json', 'utf-8'));
 
-// --- ৩. MongoDB সংযোগ (User Data-ৰ বাবে) ---
+// --- ৩. MongoDB সংযোগ ---
 mongoose.connect(MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected Successfully"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-// ইউজাৰৰ স্কিমা (User Schema)
 const userSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   wallet_balance: { type: Number, default: 50 }
@@ -84,8 +83,8 @@ app.post('/api/chat', async (req, res) => {
                 });
             }
 
-            // মডেলটো পুনৰ ফ্লাছ (Flash)-লৈ সলনি কৰা হ'ল যাতে স্পীড বেছি থাকে আৰু ব্লক নহয়
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            // এইখিনিতেই ভুল আছিল, এতিয়া 'gemini-1.5-flash' বুলি শুদ্ধ কৰি দিয়া হৈছে
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             
             const advancedPrompt = `You are Assamese AI Brain Pro, a highly advanced AI assistant. You are an expert in all programming languages (Python, HTML, JavaScript, C++, etc.), mathematics, and complex logical reasoning. 
 Always provide detailed, professional, and accurate answers. 
@@ -117,7 +116,6 @@ User Question: ${message}`;
 
     } catch (error) {
         console.error("Server Error:", error);
-        // এৰৰ আহিলেও এতিয়া এপটোৱে ধুনীয়াকৈ উত্তৰ দিব
         res.status(500).json({ response: "দুখিত, বৰ্তমান ছাৰ্ভাৰত বহুত মানুহে একেলগে কাম কৰি আছে। অনুগ্ৰহ কৰি ১ মিনিটমান ৰৈ আকৌ প্ৰশ্নটো সোধক।" });
     }
 });
