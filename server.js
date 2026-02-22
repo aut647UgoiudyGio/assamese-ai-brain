@@ -42,14 +42,12 @@ app.post('/api/chat', async (req, res) => {
     }
 
     try {
-        // ক) MongoDB-ৰ পৰা ইউজাৰ বিচাৰক বা নতুনকৈ বনাওক
         let user = await User.findOne({ userId });
         if (!user) {
             user = new User({ userId, wallet_balance: 50 });
             await user.save();
         }
 
-        // খ) প্ৰথমে JSON Brain-ত উত্তৰ বিচাৰক (Cost: 0)
         let matchedIntent = null;
         const intents = brainData.intents;
 
@@ -73,25 +71,22 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
-        // গ) যদি JSON-ত নাই -> Gemini API Call (Advanced Model)
         const dynamicEngine = brainData.dynamic_knowledge_retrieval_engine;
         
         if (dynamicEngine && dynamicEngine.enabled) {
             const costPerRequest = 100;
             
-            // টোকেন চেক
             if (user.wallet_balance < costPerRequest) {
                 return res.json({
                     source: "system",
-                    response: "আপোনাৰ AI Coins শেষ হৈছে। অনুগ্ৰহ কৰি এটা AdMob Rewarded Video চাই টোকেন ৰিচাৰ্জ কৰক।",
+                    response: "আপোনাৰ AI Coins শেষ হৈছে। অনুগ্ৰহ কৰি এটা বিজ্ঞাপন চাই টোকেন ৰিচাৰ্জ কৰক।",
                     action_required: "watch_ad"
                 });
             }
 
-            // Gemini-লৈ মেছেজ পঠিয়াওক (Advanced PRO Model ব্যৱহাৰ কৰা হৈছে)
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+            // মডেলটো পুনৰ ফ্লাছ (Flash)-লৈ সলনি কৰা হ'ল যাতে স্পীড বেছি থাকে আৰু ব্লক নহয়
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             
-            // Advanced System Prompt (মগজুটোক শক্তিশালী কৰা হৈছে)
             const advancedPrompt = `You are Assamese AI Brain Pro, a highly advanced AI assistant. You are an expert in all programming languages (Python, HTML, JavaScript, C++, etc.), mathematics, and complex logical reasoning. 
 Always provide detailed, professional, and accurate answers. 
 When providing code, always use Markdown formatting (e.g., \`\`\`html ... \`\`\`). 
@@ -104,7 +99,6 @@ User Question: ${message}`;
             const result = await model.generateContent(advancedPrompt);
             const aiResponse = await result.response.text();
 
-            // MongoDB-ত টোকেন আপডেট কৰক
             user.wallet_balance -= costPerRequest;
             await user.save();
 
@@ -116,7 +110,6 @@ User Question: ${message}`;
             });
         }
 
-        // Fallback
         return res.json({
             source: "system_fallback",
             response: "দুখিত, মই আপোনাৰ প্ৰশ্নটো বুজি নাপালোঁ।"
@@ -124,11 +117,11 @@ User Question: ${message}`;
 
     } catch (error) {
         console.error("Server Error:", error);
-        res.status(500).json({ error: "Server Error" });
+        // এৰৰ আহিলেও এতিয়া এপটোৱে ধুনীয়াকৈ উত্তৰ দিব
+        res.status(500).json({ response: "দুখিত, বৰ্তমান ছাৰ্ভাৰত বহুত মানুহে একেলগে কাম কৰি আছে। অনুগ্ৰহ কৰি ১ মিনিটমান ৰৈ আকৌ প্ৰশ্নটো সোধক।" });
     }
 });
 
-// টোকেন ৰিচাৰ্জ কৰাৰ API
 app.post('/api/reward', async (req, res) => {
     const { userId, amount } = req.body;
     try {
@@ -145,7 +138,6 @@ app.post('/api/reward', async (req, res) => {
     }
 });
 
-// --- ৫. Webpage (Frontend) Serve কৰা ---
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
