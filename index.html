@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assamese AI Brain Pro</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -31,9 +32,36 @@
         .avatar { width: 35px; height: 35px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
         .bot-avatar { background-color: var(--primary-color); color: white; }
         .user-avatar { background-color: #007bff; color: white; }
-        .msg-text { padding: 12px 16px; border-radius: 8px; line-height: 1.5; font-size: 1rem; }
+        .msg-text { padding: 12px 16px; border-radius: 8px; line-height: 1.5; font-size: 1rem; width: 100%; overflow-x: auto; }
         .bot .msg-text { background-color: var(--bot-msg-bg); border: 1px solid var(--border-color); color: #333; }
         .user .msg-text { background-color: var(--user-msg-bg); color: #004085; }
+        
+        /* Markdown আৰু Code Box ৰ পেছাদাৰী ডিজাইন */
+        .markdown-body pre {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        .markdown-body code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: rgba(0,0,0,0.05);
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: #d14;
+        }
+        .markdown-body pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        .markdown-body p { margin-bottom: 8px; }
+        .markdown-body ul, .markdown-body ol { margin-left: 25px; margin-bottom: 10px; }
+        .markdown-body strong { color: #111; }
+
         .input-area { padding: 20px; background: var(--chat-bg); border-top: 1px solid var(--border-color); display: flex; gap: 10px; flex-direction: column; }
         .input-wrapper { display: flex; gap: 10px; background: white; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 25px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
         input { flex: 1; border: none; padding: 10px; outline: none; font-size: 1rem; background: transparent; }
@@ -128,35 +156,30 @@
 
 <script>
     // --- User ID আৰু Chat History লজিক ---
-    // ব্যৱহাৰকাৰীৰ একেটা ID ধৰি ৰাখিবলৈ LocalStorage ব্যৱহাৰ কৰা হৈছে
     let userId = localStorage.getItem('assamese_ai_user_id');
     if (!userId) {
         userId = "user_" + Math.floor(Math.random() * 1000000);
         localStorage.setItem('assamese_ai_user_id', userId);
     }
 
-    // ৱেবছাইট খোল খালেই পুৰণি হিষ্ট্ৰী লোড কৰা হ'ব
     window.onload = function() {
         const savedHistory = localStorage.getItem('assamese_ai_chat_history');
         if (savedHistory) {
             document.getElementById('chatBox').innerHTML = savedHistory;
-            // একেবাৰে তললৈ স্ক্ৰল কৰা
             const chatBox = document.getElementById('chatBox');
             chatBox.scrollTop = chatBox.scrollHeight;
         }
     };
 
-    // হিষ্ট্ৰী চেভ কৰা ফাংচন
     function saveChatHistory() {
         const chatBoxHTML = document.getElementById('chatBox').innerHTML;
         localStorage.setItem('assamese_ai_chat_history', chatBoxHTML);
     }
 
-    // হিষ্ট্ৰী ডিলিট কৰা ফাংচন
     function clearChatHistory() {
         if (confirm("আপুনি সকলো পুৰণি কথা-বতৰা মচি পেলাবলৈ নিশ্চিত নে?")) {
             localStorage.removeItem('assamese_ai_chat_history');
-            location.reload(); // পেজটো ৰিফ্ৰেছ কৰিব
+            location.reload(); 
         }
     }
     // --- End of History Logic ---
@@ -201,7 +224,7 @@
             document.getElementById('sendBtn').disabled = false;
 
             if (data.action_required === "watch_ad") {
-                appendMessage('bot', data.response);
+                appendMessage('bot', data.response, true);
                 document.getElementById('rechargeBtn').style.display = 'block';
             } else {
                 appendMessage('bot', data.response);
@@ -302,19 +325,32 @@ async function rechargeTokens() {
     }, 1000);
 }
 
-    function appendMessage(sender, text) {
+    // Markdown আৰু সাধাৰণ টেক্সটৰ বাবে appendMessage ফাংচনটো সলনি কৰা হৈছে
+    function appendMessage(sender, text, isRaw = false) {
         const chatBox = document.getElementById('chatBox');
         const icon = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+        
+        let formattedText = text;
+        
+        // যদি ব্যৱহাৰকাৰীৰ মেছেজ হয়, তেন্তে সাধাৰণভাৱে দেখুৱাব
+        if (sender === 'user') {
+            formattedText = text.replace(/\n/g, '<br>');
+        } 
+        // যদি AI ৰ মেছেজ হয় আৰু ই Raw নহয়, তেন্তে Markdown হিচাপে দেখুৱাব
+        else if (!isRaw) {
+            formattedText = marked.parse(text);
+        }
+
         const msgHTML = `
             <div class="message ${sender}">
                 <div class="avatar ${sender}-avatar">${icon}</div>
-                <div class="msg-text">${text.replace(/\n/g, '<br>')}</div>
+                <div class="msg-text markdown-body">${formattedText}</div>
             </div>
         `;
         chatBox.innerHTML += msgHTML;
         chatBox.scrollTop = chatBox.scrollHeight;
         
-        // মেছেজ অহাৰ লগে লগে হিষ্ট্ৰী চেভ কৰা হ'ব
+        // হিষ্ট্ৰী চেভ কৰক
         saveChatHistory();
     }
 
