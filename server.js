@@ -18,7 +18,6 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 // --- ২. Brain JSON ফাইল লোড ---
-// (Brain ফাইলটো GitHub-ত কোডৰ লগত থাকিব, সেইবাবে ই Local File হিচাপে দ্ৰুতগতিত কাম কৰিব)
 const brainData = JSON.parse(fs.readFileSync('./brain.json', 'utf-8'));
 
 // --- ৩. MongoDB সংযোগ (User Data-ৰ বাবে) ---
@@ -26,10 +25,10 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected Successfully"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-// ইউজাৰৰ স্কিমা (User Schema) - MongoDB ত কি কি ডাটা থাকিব
+// ইউজাৰৰ স্কিমা (User Schema)
 const userSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
-  wallet_balance: { type: Number, default: 50 } // নতুন ইউজাৰে ৫০ টোকেন পাব
+  wallet_balance: { type: Number, default: 50 }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -46,7 +45,7 @@ app.post('/api/chat', async (req, res) => {
         // ক) MongoDB-ৰ পৰা ইউজাৰ বিচাৰক বা নতুনকৈ বনাওক
         let user = await User.findOne({ userId });
         if (!user) {
-            user = new User({ userId, wallet_balance: 50 }); // নতুন ইউজাৰ সৃষ্টি
+            user = new User({ userId, wallet_balance: 50 });
             await user.save();
         }
 
@@ -74,7 +73,7 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
-        // গ) যদি JSON-ত নাই -> Gemini API Call (Cost: 100)
+        // গ) যদি JSON-ত নাই -> Gemini API Call (Advanced Model)
         const dynamicEngine = brainData.dynamic_knowledge_retrieval_engine;
         
         if (dynamicEngine && dynamicEngine.enabled) {
@@ -89,17 +88,25 @@ app.post('/api/chat', async (req, res) => {
                 });
             }
 
-            // Gemini-লৈ মেছেজ পঠিয়াওক
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-            const promptContext = dynamicEngine.fallback_prompt_injection;
-            const finalPrompt = `${promptContext}\n\nপ্ৰশ্ন: ${message}`;
+            // Gemini-লৈ মেছেজ পঠিয়াওক (Advanced PRO Model ব্যৱহাৰ কৰা হৈছে)
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+            
+            // Advanced System Prompt (মগজুটোক শক্তিশালী কৰা হৈছে)
+            const advancedPrompt = `You are Assamese AI Brain Pro, a highly advanced AI assistant. You are an expert in all programming languages (Python, HTML, JavaScript, C++, etc.), mathematics, and complex logical reasoning. 
+Always provide detailed, professional, and accurate answers. 
+When providing code, always use Markdown formatting (e.g., \`\`\`html ... \`\`\`). 
+Answer in pure Assamese unless the user explicitly asks for English code.
 
-            const result = await model.generateContent(finalPrompt);
+Context from system: ${dynamicEngine.fallback_prompt_injection}
+
+User Question: ${message}`;
+
+            const result = await model.generateContent(advancedPrompt);
             const aiResponse = await result.response.text();
 
             // MongoDB-ত টোকেন আপডেট কৰক
             user.wallet_balance -= costPerRequest;
-            await user.save(); // ডাটাবেছত চেভ হ'ল
+            await user.save();
 
             return res.json({
                 source: "gemini_api",
@@ -121,7 +128,7 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// টোকেন ৰিচাৰ্জ কৰাৰ নতুন API (AdMob-ৰ পৰা Reward পালে এইটো কল কৰিব)
+// টোকেন ৰিচাৰ্জ কৰাৰ API
 app.post('/api/reward', async (req, res) => {
     const { userId, amount } = req.body;
     try {
@@ -137,6 +144,7 @@ app.post('/api/reward', async (req, res) => {
         res.status(500).json({ error: "Error updating balance" });
     }
 });
+
 // --- ৫. Webpage (Frontend) Serve কৰা ---
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
