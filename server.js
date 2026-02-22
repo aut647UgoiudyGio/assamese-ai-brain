@@ -11,8 +11,8 @@ app.use(express.json());
 
 // --- কনফিগাৰেশ্যন ---
 const PORT = process.env.PORT || 3000;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const MONGODB_URI = process.env.MONGODB_URI;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "API_KEY_MISSING";
+const MONGODB_URI = process.env.MONGODB_URI || "MONGO_URI_MISSING";
 
 // --- ১. Google Gemini সেটআপ ---
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -21,7 +21,8 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const brainData = JSON.parse(fs.readFileSync('./brain.json', 'utf-8'));
 
 // --- ৩. MongoDB সংযোগ ---
-mongoose.connect(MONGODB_URI)
+// Timeout কমাই দিয়া হৈছে যাতে ডাটাবেছত সমস্যা থাকিলে সোনকালে ধৰিব পাৰি
+mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
   .then(() => console.log("✅ MongoDB Connected Successfully"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
@@ -41,10 +42,19 @@ app.post('/api/chat', async (req, res) => {
     }
 
     try {
-        let user = await User.findOne({ userId });
-        if (!user) {
-            user = new User({ userId, wallet_balance: 50 });
-            await user.save();
+        let user;
+        // ডাটাবেছৰ সমস্যা পৰীক্ষা কৰা
+        try {
+            user = await User.findOne({ userId });
+            if (!user) {
+                user = new User({ userId, wallet_balance: 50 });
+                await user.save();
+            }
+        } catch (dbError) {
+            console.error("MongoDB Error:", dbError);
+            return res.status(500).json({ 
+                response: `🔴 **ডাটাবেছ এৰৰ (MongoDB):** ${dbError.message}\n\n**সমাধান:** অনুগ্ৰহ কৰি MongoDB Atlas ত গৈ 'Network Access' ত IP Address টো \`0.0.0.0/0\` দিয়া আছেনে পৰীক্ষা কৰক। লগতে Render-ত MONGODB_URI ঠিককৈ দিয়া আছেনে চাওক।` 
+            });
         }
 
         let matchedIntent = null;
@@ -83,10 +93,11 @@ app.post('/api/chat', async (req, res) => {
                 });
             }
 
-            // এইখিনিতেই ভুল আছিল, এতিয়া 'gemini-1.5-flash' বুলি শুদ্ধ কৰি দিয়া হৈছে
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            
-            const advancedPrompt = `You are Assamese AI Brain Pro, a highly advanced AI assistant. You are an expert in all programming languages (Python, HTML, JavaScript, C++, etc.), mathematics, and complex logical reasoning. 
+            // Gemini AI ৰ সমস্যা পৰীক্ষা কৰা
+            try {
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                
+                const advancedPrompt = `You are Assamese AI Brain Pro, a highly advanced AI assistant. You are an expert in all programming languages (Python, HTML, JavaScript, C++, etc.), mathematics, and complex logical reasoning. 
 Always provide detailed, professional, and accurate answers. 
 When providing code, always use Markdown formatting (e.g., \`\`\`html ... \`\`\`). 
 Answer in pure Assamese unless the user explicitly asks for English code.
@@ -95,18 +106,24 @@ Context from system: ${dynamicEngine.fallback_prompt_injection}
 
 User Question: ${message}`;
 
-            const result = await model.generateContent(advancedPrompt);
-            const aiResponse = await result.response.text();
+                const result = await model.generateContent(advancedPrompt);
+                const aiResponse = await result.response.text();
 
-            user.wallet_balance -= costPerRequest;
-            await user.save();
+                user.wallet_balance -= costPerRequest;
+                await user.save();
 
-            return res.json({
-                source: "gemini_api",
-                response: aiResponse,
-                cost: costPerRequest,
-                remaining_balance: user.wallet_balance
-            });
+                return res.json({
+                    source: "gemini_api",
+                    response: aiResponse,
+                    cost: costPerRequest,
+                    remaining_balance: user.wallet_balance
+                });
+            } catch (aiError) {
+                console.error("Gemini Error:", aiError);
+                return res.status(500).json({ 
+                    response: `🔴 **Gemini AI এৰৰ:** ${aiError.message}\n\n**সমাধান:** অনুগ্ৰহ কৰি Render-ৰ 'Environment Variables' ত গৈ \`GEMINI_API_KEY\` টো শুদ্ধকৈ দিয়া আছেনে পৰীক্ষা কৰক।` 
+                });
+            }
         }
 
         return res.json({
@@ -115,8 +132,8 @@ User Question: ${message}`;
         });
 
     } catch (error) {
-        console.error("Server Error:", error);
-        res.status(500).json({ response: "দুখিত, বৰ্তমান ছাৰ্ভাৰত বহুত মানুহে একেলগে কাম কৰি আছে। অনুগ্ৰহ কৰি ১ মিনিটমান ৰৈ আকৌ প্ৰশ্নটো সোধক।" });
+        console.error("General Server Error:", error);
+        return res.status(500).json({ response: `🔴 **অজ্ঞাত ছাৰ্ভাৰ এৰৰ:** ${error.message}` });
     }
 });
 
